@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_margin="5dp"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="120dp"
+        tools:src="@drawable/sample"
+        android:scaleType="centerCrop"
+        android:id="@+id/comic_image"
+        />
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/comic_name"
+        android:textAlignment="center"
+
+        android:layout_marginTop="5dp"
+        android:textSize="15sp"
+        android:textColor="@color/colorWhite"
+        tools:text="@string/app_name"
+        />
+
+</LinearLayout>

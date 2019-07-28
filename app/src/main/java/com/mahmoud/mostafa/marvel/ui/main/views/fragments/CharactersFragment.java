@@ -14,25 +14,28 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mahmoud.mostafa.marvel.R;
+import com.mahmoud.mostafa.marvel.data.pojos.characters.Character;
 import com.mahmoud.mostafa.marvel.data.pojos.characters.Results;
 import com.mahmoud.mostafa.marvel.ui.details.view.DetailsActivity;
 import com.mahmoud.mostafa.marvel.ui.main.DetailsInterface;
 import com.mahmoud.mostafa.marvel.ui.main.adapters.CharactersAdapter;
-import com.mahmoud.mostafa.marvel.ui.main.presenters.MainMvpView;
-import com.mahmoud.mostafa.marvel.ui.main.presenters.MainPresenter;
+import com.mahmoud.mostafa.marvel.ui.main.viewModel.MainViewModel;
 
 import java.util.List;
 
-public class CharactersFragment extends Fragment implements MainMvpView, DetailsInterface {
-    private MainPresenter mainPresenter;
+public class CharactersFragment extends Fragment implements DetailsInterface {
+
     private CharactersAdapter adapter;
     private RecyclerView charactersRecyclerView;
     private Toolbar toolbar;
+    private MainViewModel mainViewModel;
 
 
     public CharactersFragment() {
@@ -59,7 +62,6 @@ public class CharactersFragment extends Fragment implements MainMvpView, Details
         toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(null);
-
         setHasOptionsMenu(true);
         return view;
     }
@@ -85,13 +87,20 @@ public class CharactersFragment extends Fragment implements MainMvpView, Details
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         charactersRecyclerView = view.findViewById(R.id.character_recyclerView);
-        mainPresenter = new MainPresenter(this);
-        mainPresenter.getCharchters();
+
+        mainViewModel = ViewModelProviders.of(getActivity()).get(MainViewModel.class);
+        mainViewModel.init();
+        mainViewModel.getCharacters().observe(getActivity(), new Observer<Character>() {
+            @Override
+            public void onChanged(Character character) {
+                setData(character.getData().getResults());
+            }
+        });
+
     }
 
 
-    @Override
-    public void setData(List<Results> results) {
+    private void setData(List<Results> results) {
         adapter = new CharactersAdapter(results, getActivity().getApplicationContext(), false, this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
         charactersRecyclerView.setLayoutManager(layoutManager);

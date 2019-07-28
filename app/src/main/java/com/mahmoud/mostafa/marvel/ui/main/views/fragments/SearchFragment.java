@@ -15,25 +15,28 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mahmoud.mostafa.marvel.R;
+import com.mahmoud.mostafa.marvel.data.pojos.characters.Character;
 import com.mahmoud.mostafa.marvel.data.pojos.characters.Results;
 import com.mahmoud.mostafa.marvel.ui.details.view.DetailsActivity;
 import com.mahmoud.mostafa.marvel.ui.main.DetailsInterface;
 import com.mahmoud.mostafa.marvel.ui.main.adapters.CharactersAdapter;
-import com.mahmoud.mostafa.marvel.ui.main.presenters.MainMvpView;
-import com.mahmoud.mostafa.marvel.ui.main.presenters.MainPresenter;
+import com.mahmoud.mostafa.marvel.ui.main.viewModel.MainViewModel;
 
 import java.util.List;
 
-public class SearchFragment extends Fragment implements MainMvpView, DetailsInterface {
-    private MainPresenter mainPresenter;
+public class SearchFragment extends Fragment implements DetailsInterface {
+
     private RecyclerView searchRecyclerView;
     private Toolbar toolbar;
+    private MainViewModel mainViewModel;
 
     public SearchFragment() {
     }
@@ -62,13 +65,16 @@ public class SearchFragment extends Fragment implements MainMvpView, DetailsInte
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(null);
         setHasOptionsMenu(true);
 
+        mainViewModel = ViewModelProviders.of(getActivity()).get(MainViewModel.class);
+        mainViewModel.init();
         return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mainPresenter = new MainPresenter(this);
+
+
     }
 
 
@@ -81,12 +87,22 @@ public class SearchFragment extends Fragment implements MainMvpView, DetailsInte
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+
+
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                mainPresenter.getCharactersByName(newText);
+                mainViewModel.getCharacterByName(newText.trim()).observe(getActivity(), new Observer<Character>() {
+                    @Override
+                    public void onChanged(Character character) {
+                        if (character != null) {
+                            setData(character.getData().getResults());
+                        }
+                    }
+                });
+
                 return true;
             }
         });
@@ -95,8 +111,7 @@ public class SearchFragment extends Fragment implements MainMvpView, DetailsInte
     }
 
 
-    @Override
-    public void setData(List<Results> results) {
+    private void setData(List<Results> results) {
         CharactersAdapter adapter = new CharactersAdapter(results, getActivity().getApplicationContext(), true, this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
         searchRecyclerView.setLayoutManager(layoutManager);

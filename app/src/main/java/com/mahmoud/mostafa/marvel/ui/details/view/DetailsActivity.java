@@ -7,52 +7,84 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.mahmoud.mostafa.marvel.R;
+import com.mahmoud.mostafa.marvel.data.pojos.characters.Character;
 import com.mahmoud.mostafa.marvel.data.pojos.characters.Results;
 import com.mahmoud.mostafa.marvel.ui.details.adapters.ComicsAdapter;
-import com.mahmoud.mostafa.marvel.ui.details.presenter.DetailsMvpView;
-import com.mahmoud.mostafa.marvel.ui.details.presenter.DetailsPresenter;
+import com.mahmoud.mostafa.marvel.ui.details.viewModel.DetailsViewModel;
 
 import java.util.List;
 
-public class DetailsActivity extends AppCompatActivity implements DetailsMvpView {
+public class DetailsActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private TextView characterName;
     private TextView characterDescription;
     private ImageView characterImage;
     private String normalImage = "portrait_incredible";
-    private DetailsPresenter mPresenter;
     private RecyclerView comicsRecycler, seriesRecycler, eventsRecycler, storiesRecycler;
     private ComicsAdapter comicsAdapter, seriesAdapter, eventsAdapter, storiesAdapter;
     private ImageView backArrow;
     private ImageView backImage;
     private TextView titleText;
+    private DetailsViewModel detailsViewModel;
+    private String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
-        setUpViews();
         Results character = getIntent().getParcelableExtra("character");
+        id = character.getId().toString();
+        detailsViewModel = ViewModelProviders.of(this).get(DetailsViewModel.class);
+        detailsViewModel.init();
+
+        setUpViews();
         bindData(character);
-
-        mPresenter = new DetailsPresenter(this);
-        mPresenter.getComics(character.getId().toString());
-        mPresenter.getSeries(character.getId().toString());
-        mPresenter.getStories(character.getId().toString());
-        mPresenter.getEvents(character.getId().toString());
-
+        getRemoteDate();
 
         backArrow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+    }
+
+    private void getRemoteDate() {
+
+        detailsViewModel.getComics(id).observe(this, new Observer<Character>() {
+            @Override
+            public void onChanged(Character character) {
+                setComicsData(character.getData().getResults());
+            }
+        });
+
+        detailsViewModel.getEvents(id).observe(this, new Observer<Character>() {
+            @Override
+            public void onChanged(Character character) {
+                setEventsData(character.getData().getResults());
+            }
+        });
+
+        detailsViewModel.getSeries(id).observe(this, new Observer<Character>() {
+            @Override
+            public void onChanged(Character character) {
+                setSeriesData(character.getData().getResults());
+            }
+        });
+
+        detailsViewModel.getStories(id).observe(this, new Observer<Character>() {
+            @Override
+            public void onChanged(Character character) {
+                setStoriesData(character.getData().getResults());
             }
         });
     }
@@ -71,29 +103,28 @@ public class DetailsActivity extends AppCompatActivity implements DetailsMvpView
     }
 
 
-    @Override
-    public void setComicsData(List<Results> results) {
+    private void setComicsData(List<Results> results) {
         comicsAdapter = new ComicsAdapter(results, this);
         setupRecycler(comicsRecycler);
         comicsRecycler.setAdapter(comicsAdapter);
     }
 
-    @Override
-    public void setSeriesData(List<Results> results) {
+
+    private void setSeriesData(List<Results> results) {
         seriesAdapter = new ComicsAdapter(results, this);
         setupRecycler(seriesRecycler);
         seriesRecycler.setAdapter(seriesAdapter);
     }
 
-    @Override
-    public void setStoriesData(List<Results> results) {
+
+    private void setStoriesData(List<Results> results) {
         storiesAdapter = new ComicsAdapter(results, this);
         setupRecycler(storiesRecycler);
         storiesRecycler.setAdapter(storiesAdapter);
     }
 
-    @Override
-    public void setEventsData(List<Results> results) {
+
+    private void setEventsData(List<Results> results) {
         eventsAdapter = new ComicsAdapter(results, this);
         setupRecycler(eventsRecycler);
         eventsRecycler.setAdapter(eventsAdapter);

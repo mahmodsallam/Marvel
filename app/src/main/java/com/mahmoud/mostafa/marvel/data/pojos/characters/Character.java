@@ -3,9 +3,7 @@ package com.mahmoud.mostafa.marvel.data.pojos.characters;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Awesome Pojo Generator
- */
+
 public class Character {
     @SerializedName("copyright")
     @Expose
